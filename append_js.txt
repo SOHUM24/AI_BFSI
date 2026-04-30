@@ -1,0 +1,307 @@
+;
+
+// ===== UTILITIES =====
+const fmt = n => n == null || isNaN(n) ? '—' : n.toLocaleString('en-IN', {maximumFractionDigits:0});
+const fmt1 = n => n == null || isNaN(n) ? '—' : n.toLocaleString('en-IN', {maximumFractionDigits:1});
+const fmt2 = n => n == null || isNaN(n) ? '—' : n.toLocaleString('en-IN', {maximumFractionDigits:2});
+const cr = n => n == null ? null : n / 100; // lakhs to crores
+
+const STATES = ['ANDHRA PRADESH','BIHAR','CHHATTISGARH','GUJARAT','HARYANA','HIMACHAL PRADESH','JAMMU AND KASHMIR','JHARKHAND','KARNATAKA','KERALA','MADHYA PRADESH','MAHARASHTRA','ORISSA','PUNJAB','RAJASTHAN','TAMIL NADU','TELANGANA','UTTAR PRADESH','UTTARAKHAND','WEST BENGAL'];
+
+// ===== COLOR SCALE FOR MAP =====
+function getColor(value) {
+  if (value == null) return '#ccc';
+  const crv = value / 100; // in crores
+  if (crv > 500000) return '#0b2318';
+  if (crv > 200000) return '#1f5438';
+  if (crv > 50000)  return '#3a8c5d';
+  return '#7bc49a';
+}
+
+// ===== NATIONAL STATS =====
+function setNationalStats() {
+  const ai = DCCB_DATA['ALL_INDIA'];
+  if (!ai) return;
+  document.getElementById('nat-dccbs').textContent = fmt(ai.dccbs);
+  document.getElementById('nat-deposits').textContent = fmt2(cr(ai.deposits));
+  document.getElementById('nat-loans').textContent = fmt2(cr(ai.loans));
+  document.getElementById('nat-business').textContent = fmt2(cr(ai.business));
+  document.getElementById('nat-members').textContent = fmt(ai.members);
+  document.getElementById('nat-employees').textContent = fmt(ai.employees);
+
+  document.getElementById('ai-dccbs').textContent = fmt(ai.dccbs);
+  document.getElementById('ai-offices').textContent = fmt(ai.offices);
+  document.getElementById('ai-members').textContent = fmt(ai.members);
+  document.getElementById('ai-employees').textContent = fmt(ai.employees);
+  document.getElementById('ai-deposits').textContent = fmt2(ai.derived.deposits_in_cr);
+  document.getElementById('ai-loans').textContent = fmt2(ai.derived.loans_in_cr);
+  document.getElementById('ai-cdr').textContent = fmt1(ai.derived.cd_ratio);
+  const plEl = document.getElementById('ai-pl');
+  plEl.textContent = (ai.pl >= 0 ? '+' : '') + fmt2(ai.derived.loans_in_cr > 0 ? ai.pl / 100 : ai.pl);
+  plEl.className = 'panel-stat-val ' + (ai.pl >= 0 ? '' : 'negative');
+}
+
+// ===== MAP COLORING =====
+function colorMap() {
+  STATES.forEach(state => {
+    const d = DCCB_DATA[state];
+    const el = document.querySelector(`.map-state[data-state="${state}"]`);
+    if (el && d && d.business != null) {
+      el.style.fill = getColor(d.business);
+    }
+  });
+}
+
+// ===== MAP CLICK =====
+function openStateModal(state) {
+  const d = DCCB_DATA[state];
+  if (!d) return;
+  const modal = document.getElementById('state-modal');
+  const title = document.getElementById('modal-title');
+  const body = document.getElementById('modal-body');
+
+  title.innerHTML = `<i class="fas fa-map-marker-alt" style="color:var(--emerald);margin-right:8px"></i> ${state} <span style="font-size:13px;color:var(--text-muted);font-weight:400">· DCCB Profile FY 2023-24</span>`;
+
+  const kccText = d.kcc_sanctioned != null ? `₹${fmt(d.kcc_sanctioned)} Lakhs` : '—';
+  const kccIssued = d.kcc_issued != null ? fmt(d.kcc_issued) : '—';
+
+  body.innerHTML = `
+    <div class="panel-stat-grid">
+      <div class="panel-stat"><div class="panel-stat-val">${fmt(d.dccbs)}</div><div class="panel-stat-lbl">DCCBs</div></div>
+      <div class="panel-stat"><div class="panel-stat-val">${fmt(d.offices)}</div><div class="panel-stat-lbl">Offices</div></div>
+      <div class="panel-stat"><div class="panel-stat-val">${fmt(d.employees)}</div><div class="panel-stat-lbl">Employees</div></div>
+      <div class="panel-stat"><div class="panel-stat-val">${fmt(d.members)}</div><div class="panel-stat-lbl">Members</div></div>
+      <div class="panel-stat"><div class="panel-stat-val">${fmt2(cr(d.deposits))}</div><div class="panel-stat-lbl">Deposits (₹ Cr)</div></div>
+      <div class="panel-stat"><div class="panel-stat-val">${fmt2(cr(d.loans))}</div><div class="panel-stat-lbl">Loans (₹ Cr)</div></div>
+      <div class="panel-stat"><div class="panel-stat-val">${fmt2(cr(d.business))}</div><div class="panel-stat-lbl">Business (₹ Cr)</div></div>
+      <div class="panel-stat"><div class="panel-stat-val ${d.pl >= 0 ? '' : 'negative'}">${d.pl >= 0 ? '+' : ''}${fmt2(cr(d.pl))}</div><div class="panel-stat-lbl">P&L (₹ Cr)</div></div>
+    </div>
+    <table class="panel-table">
+      <thead><tr><th>Indicator</th><th style="text-align:right">Value</th></tr></thead>
+      <tbody>
+        <tr><td>Working Capital (₹ Lakhs)</td><td class="num">${fmt(d.working_capital)}</td></tr>
+        <tr><td>Cash on Hand (₹ Lakhs)</td><td class="num">${fmt(d.cash)}</td></tr>
+        <tr><td>Balances with Banks (₹ Lakhs)</td><td class="num">${fmt(d.bank_balances)}</td></tr>
+        <tr><td>NPA Absolute (₹ Lakhs)</td><td class="num">${fmt(d.npa)}</td></tr>
+        <tr><td>NPA to Loans (%)</td><td class="num">${fmt1(d.derived.npa_to_loans_pct)}%</td></tr>
+        <tr><td>C/D Ratio (%)</td><td class="num">${fmt1(d.derived.cd_ratio)}%</td></tr>
+        <tr><td>COM to WC (%)</td><td class="num">${fmt1(d.com_pct)}%</td></tr>
+        <tr><td>Cost of Management (₹ Lakhs)</td><td class="num">${fmt(d.cost_mgmt)}</td></tr>
+        <tr><td>ST Agricultural Loans (₹ Lakhs)</td><td class="num">${fmt(d.st_agri_loans)}</td></tr>
+        <tr><td>MT Agricultural Loans (₹ Lakhs)</td><td class="num">${fmt(d.mt_agri_loans)}</td></tr>
+        <tr><td>ST Non-Agricultural (₹ Lakhs)</td><td class="num">${fmt(d.st_non_agri_loans)}</td></tr>
+        <tr><td>MT Non-Agricultural (₹ Lakhs)</td><td class="num">${fmt(d.mt_non_agri_loans)}</td></tr>
+        <tr><td>Investments (₹ Lakhs)</td><td class="num">${fmt(d.investments)}</td></tr>
+        <tr><td>Branches in Profit</td><td class="num">${fmt(d.branches_profit)}</td></tr>
+        <tr><td>Branches in Loss</td><td class="num">${fmt(d.branches_loss)}</td></tr>
+        <tr><td>KCC Loan Sanctioned</td><td class="num">${kccText}</td></tr>
+        <tr><td>KCC Cards Issued</td><td class="num">${kccIssued}</td></tr>
+        <tr><td>Yield per Employee (₹)</td><td class="num">${fmt(d.yield_per_emp)}</td></tr>
+        <tr><td>COM per Employee (₹ Lakhs)</td><td class="num">${fmt2(d.com_per_emp)}</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:12px;font-style:italic">
+      <i class="fas fa-database"></i> Source: NAFSCOB Official Directory · DCCB Master Returns 2023-2024 · State: ${state}
+    </p>
+  `;
+
+  modal.classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('state-modal').classList.remove('open');
+}
+
+// Attach map events
+document.querySelectorAll('.map-state').forEach(el => {
+  el.addEventListener('click', () => openStateModal(el.dataset.state));
+});
+
+// ===== MINI STATS =====
+function setMiniStats() {
+  let topDep = {s:'',v:0}, topLoan = {s:'',v:0}, topDccbs = {s:'',v:0}, topMem = {s:'',v:0};
+  STATES.forEach(s => {
+    const d = DCCB_DATA[s];
+    if (!d) return;
+    if (d.deposits > topDep.v) topDep = {s, v:d.deposits};
+    if (d.loans > topLoan.v) topLoan = {s, v:d.loans};
+    if (d.dccbs > topDccbs.v) topDccbs = {s, v:d.dccbs};
+    if (d.members > topMem.v) topMem = {s, v:d.members};
+  });
+  document.getElementById('top-state-deposits').textContent = topDep.s.split(' ')[0];
+  document.getElementById('top-state-loans').textContent = topLoan.s.split(' ')[0];
+  document.getElementById('top-state-dccbs').textContent = topDccbs.s.split(' ')[0];
+  document.getElementById('top-state-members').textContent = topMem.s.split(' ')[0];
+}
+
+// ===== DATA TABLE =====
+function buildTable() {
+  const tbody = document.getElementById('table-body');
+  let html = '';
+  STATES.forEach(state => {
+    const d = DCCB_DATA[state];
+    if (!d) return;
+    const npaPct = d.derived.npa_to_loans_pct;
+    const plClass = d.pl >= 0 ? 'pos' : 'neg';
+    const kccText = d.kcc_sanctioned != null ? `₹${fmt(d.kcc_sanctioned)} L` : '—';
+    html += `<tr>
+      <td>${state}</td>
+      <td class="num">${fmt(d.dccbs)}</td>
+      <td class="num">${fmt(d.offices)}</td>
+      <td class="num">${fmt(d.employees)}</td>
+      <td class="num">${fmt(d.members)}</td>
+      <td class="num">${fmt2(cr(d.deposits))}</td>
+      <td class="num">${fmt2(cr(d.loans))}</td>
+      <td class="num">${fmt2(cr(d.business))}</td>
+      <td class="num">${fmt1(d.derived.cd_ratio)}%</td>
+      <td class="num">${fmt2(cr(d.npa))}</td>
+      <td class="num ${npaPct > 15 ? 'neg' : (npaPct < 5 ? 'pos' : '')}">${fmt1(npaPct)}%</td>
+      <td class="num ${plClass}">${d.pl >= 0 ? '+' : ''}${fmt2(cr(d.pl))}</td>
+      <td class="num">${kccText}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+// ===== CHARTS =====
+const chartColors = {
+  emerald: '#00a86b', emeraldLight: 'rgba(0,168,107,0.6)', emeraldPale: 'rgba(0,168,107,0.15)',
+  amber: '#d4820a', amberLight: 'rgba(212,130,10,0.6)', amberPale: 'rgba(212,130,10,0.15)',
+  indigo: '#1a2f5c', indigoLight: 'rgba(26,47,92,0.6)',
+  cyan: '#00b8d4', cyanLight: 'rgba(0,184,212,0.6)',
+  red: '#dc2626', redLight: 'rgba(220,38,38,0.6)',
+  purple: '#7c3aed', purpleLight: 'rgba(124,58,237,0.6)',
+  teal: '#0d9488',
+};
+
+function initCharts() {
+  const shortNames = STATES.map(s => s.split(' ')[0]);
+
+  // 1. Total Business Bar Chart
+  const bizData = STATES.map(s => cr(DCCB_DATA[s].business));
+  new Chart(document.getElementById('chart-business'), {
+    type: 'bar',
+    data: { labels: shortNames, datasets: [{
+      label: 'Total Business (₹ Cr)', data: bizData,
+      backgroundColor: bizData.map(v => v > 200000 ? '#0b2318' : v > 50000 ? '#1f5438' : '#3a8c5d'),
+      borderRadius: 6, borderSkipped: false
+    }] },
+    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `₹${fmt2(c.raw)} Cr` } } },
+      scales: { x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
+    }
+  });
+
+  // 2. Deposit vs Loan stacked (top 10 by business)
+  const top10 = STATES.slice().sort((a,b) => DCCB_DATA[b].business - DCCB_DATA[a].business).slice(0,10);
+  const top10Short = top10.map(s => s.split(' ')[0]);
+  new Chart(document.getElementById('chart-deposit-loan'), {
+    type: 'bar',
+    data: { labels: top10Short, datasets: [
+      { label: 'Deposits (₹ Cr)', data: top10.map(s => cr(DCCB_DATA[s].deposits)), backgroundColor: chartColors.emerald, borderRadius: 4 },
+      { label: 'Loans (₹ Cr)', data: top10.map(s => cr(DCCB_DATA[s].loans)), backgroundColor: chartColors.amber, borderRadius: 4 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: false, grid: { display: false }, ticks: { font: { size: 10 } } }, y: { stacked: false, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } } }, plugins: { legend: { position: 'top', labels: { font: { size: 10 } } }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ₹${fmt2(c.raw)} Cr` } } } }
+  });
+
+  // 3. DCCB count & offices
+  new Chart(document.getElementById('chart-dccbs'), {
+    type: 'bar',
+    data: { labels: shortNames, datasets: [
+      { label: 'DCCBs', data: STATES.map(s => DCCB_DATA[s].dccbs), backgroundColor: chartColors.indigo, borderRadius: 4, yAxisID: 'y' },
+      { label: 'Offices', data: STATES.map(s => DCCB_DATA[s].offices), backgroundColor: chartColors.cyan, borderRadius: 4, yAxisID: 'y1' }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false }, ticks: { font: { size: 9 } } }, y: { position: 'left', grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 9 } } }, y1: { position: 'right', grid: { display: false }, ticks: { font: { size: 9 } } } }, plugins: { legend: { position: 'top', labels: { font: { size: 10 } } } } }
+  });
+
+  // 4. Profit / Loss
+  const plData = STATES.map(s => cr(DCCB_DATA[s].pl));
+  new Chart(document.getElementById('chart-profit'), {
+    type: 'bar',
+    data: { labels: shortNames, datasets: [{
+      label: 'P&L (₹ Cr)', data: plData,
+      backgroundColor: plData.map(v => v >= 0 ? chartColors.emerald : chartColors.red),
+      borderRadius: 6
+    }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `₹${fmt2(c.raw)} Cr` } } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } } } }
+  });
+
+  // 5. NPA Absolute
+  new Chart(document.getElementById('chart-npa'), {
+    type: 'bar',
+    data: { labels: shortNames, datasets: [{
+      label: 'NPA (₹ Cr)', data: STATES.map(s => cr(DCCB_DATA[s].npa)),
+      backgroundColor: chartColors.redLight, borderColor: chartColors.red, borderWidth: 1, borderRadius: 4
+    }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } } } }
+  });
+
+  // 6. Membership
+  new Chart(document.getElementById('chart-members'), {
+    type: 'bar',
+    data: { labels: shortNames, datasets: [{
+      label: 'Members', data: STATES.map(s => DCCB_DATA[s].members),
+      backgroundColor: chartColors.purpleLight, borderColor: chartColors.purple, borderWidth: 1, borderRadius: 4
+    }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${fmt(c.raw)} members` } } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } } } }
+  });
+
+  // 7. Loan Mix (stacked horizontal)
+  new Chart(document.getElementById('chart-loan-mix'), {
+    type: 'bar',
+    data: { labels: shortNames, datasets: [
+      { label: 'ST Agricultural', data: STATES.map(s => cr(DCCB_DATA[s].st_agri_loans)), backgroundColor: chartColors.emerald, borderRadius: 3 },
+      { label: 'MT Agricultural', data: STATES.map(s => cr(DCCB_DATA[s].mt_agri_loans)), backgroundColor: chartColors.emeraldLight, borderRadius: 3 },
+      { label: 'ST Non-Agricultural', data: STATES.map(s => cr(DCCB_DATA[s].st_non_agri_loans)), backgroundColor: chartColors.amber, borderRadius: 3 },
+      { label: 'MT Non-Agricultural', data: STATES.map(s => cr(DCCB_DATA[s].mt_non_agri_loans)), backgroundColor: chartColors.amberLight, borderRadius: 3 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } }, y: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } } }, plugins: { legend: { position: 'top', labels: { font: { size: 10 } } }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ₹${fmt2(c.raw)} Cr` } } } }
+  });
+
+  // 8. KCC Sanctioned
+  const kccStates = STATES.filter(s => DCCB_DATA[s].kcc_sanctioned != null);
+  const kccShort = kccStates.map(s => s.split(' ')[0]);
+  new Chart(document.getElementById('chart-kcc-sanctioned'), {
+    type: 'bar',
+    data: { labels: kccShort, datasets: [{
+      label: 'KCC Sanctioned (₹ Lakhs)', data: kccStates.map(s => DCCB_DATA[s].kcc_sanctioned),
+      backgroundColor: chartColors.emerald, borderRadius: 4
+    }] },
+    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `₹${fmt(c.raw)} Lakhs` } } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
+  });
+
+  // 9. KCC Issued
+  const kccIssStates = STATES.filter(s => DCCB_DATA[s].kcc_issued != null);
+  const kccIssShort = kccIssStates.map(s => s.split(' ')[0]);
+  new Chart(document.getElementById('chart-kcc-issued'), {
+    type: 'bar',
+    data: { labels: kccIssShort, datasets: [{
+      label: 'KCC Cards Issued', data: kccIssStates.map(s => DCCB_DATA[s].kcc_issued),
+      backgroundColor: chartColors.cyan, borderRadius: 4
+    }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${fmt(c.raw)} cards` } } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
+  });
+}
+
+// ===== SCROLL REVEAL =====
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ===== CLOSE MODAL ON BACKDROP CLICK =====
+document.getElementById('state-modal').addEventListener('click', e => {
+  if (e.target.id === 'state-modal') closeModal();
+});
+
+// ===== INIT =====
+setNationalStats();
+colorMap();
+setMiniStats();
+buildTable();
+initCharts();
+
+</script>
+</body>
+</html>
