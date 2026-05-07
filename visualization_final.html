@@ -370,18 +370,17 @@
       stroke-linecap: round;
       vector-effect: non-scaling-stroke;
       cursor: pointer;
-      transition: fill .25s, stroke .25s, filter .25s;
+      /* Performance: avoid animating `filter` (drop-shadow is GPU-expensive). */
+      transition: none;
       filter: none
     }
 
     .map-state:hover {
-      filter: drop-shadow(0 0 10px rgba(212, 130, 10, .22));
       stroke: var(--amber-bright);
       stroke-width: 2.5
     }
 
     .map-state.active {
-      filter: drop-shadow(0 0 16px rgba(212, 130, 10, .35));
       stroke: var(--amber-bright);
       stroke-width: 3
     }
@@ -403,15 +402,13 @@
       stroke-width: 1;
       opacity: .86;
       cursor: pointer;
-      transition: opacity .15s, transform .15s, filter .15s;
+      transition: opacity .12s;
       transform-box: fill-box;
       transform-origin: center
     }
 
     .tier-dot:hover {
       opacity: 1;
-      transform: scale(1.06);
-      filter: drop-shadow(0 0 8px rgba(0, 0, 0, .18))
     }
 
     #map-tooltip {
@@ -2112,6 +2109,9 @@
       return String(x || '')
         .toUpperCase()
         .replace(/&/g, ' AND ')
+        // Topojson slug for Tamil Nadu is typically "tamilnadu" (no space),
+        // but dataset key is "TAMIL NADU" (with a space). Normalize to match.
+        .replace(/\bTAMILNADU\b/g, 'TAMIL NADU')
         .replace(/[^A-Z0-9 ]+/g, ' ')
         .replace(/\bISLANDS\b/g, '')
         .replace(/\s+/g, ' ')
@@ -3369,11 +3369,25 @@
     }
 
     function attachMapEvents() {
+      // Performance: avoid repeated querySelectorAll + reflows on every fragment hover.
+      const stateElsCache = new Map(); // stateKey -> Array<SVGPathElement>
+      document.querySelectorAll('.map-state[data-state]').forEach(el => {
+        const k = el.dataset.state;
+        if (!k) return;
+        if (!stateElsCache.has(k)) stateElsCache.set(k, []);
+        stateElsCache.get(k).push(el);
+      });
+
+      let lastActiveStateKey = null;
+
       const setActive = (stateKey, on) => {
         if (!stateKey) return;
-        document
-          .querySelectorAll(`.map-state[data-state="${stateKey}"]`)
-          .forEach(p => on ? p.classList.add('active') : p.classList.remove('active'));
+        const els = stateElsCache.get(stateKey);
+        if (!els || !els.length) return;
+        for (const p of els) {
+          if (on) p.classList.add('active');
+          else p.classList.remove('active');
+        }
       };
 
       const mapTooltip = document.getElementById('map-tooltip');
@@ -3383,6 +3397,7 @@
         if (!mapTooltip || !svg) return;
         mapTooltip.innerHTML = html;
         mapTooltip.style.display = 'block';
+        // Map wrapper position is stable during hover; compute rect once per call.
         const rect = svg.getBoundingClientRect();
         mapTooltip.style.left = `${(e.clientX - rect.left + 12)}px`;
         mapTooltip.style.top = `${(e.clientY - rect.top + 12)}px`;
@@ -3438,16 +3453,35 @@
 
       document.querySelectorAll('.map-state').forEach(el => {
         const stateKey = el.dataset.state;
+        if (!stateKey) return;
+
         el.addEventListener('click', () => openStateModal(stateKey));
+
         el.addEventListener('mouseenter', (e) => {
-          setActive(stateKey, true);
           const tier = tierSel();
           const html = hoverHtmlForTier(tier, stateKey);
+
+          // Only toggle "active" classes when the hovered state changes.
+          if (lastActiveStateKey !== stateKey) {
+            if (lastActiveStateKey) setActive(lastActiveStateKey, false);
+            setActive(stateKey, true);
+            lastActiveStateKey = stateKey;
+          }
           showTip(html, e);
         });
-        el.addEventListener('mouseleave', () => {
-          setActive(stateKey, false);
-          hideTip();
+
+        el.addEventListener('mouseleave', (e) => {
+          const rt = e.relatedTarget;
+          const nextKey = rt?.dataset?.state;
+
+          // Moving between fragments of the *same* state should not hide/flicker the tooltip.
+          if (nextKey === stateKey) return;
+
+          if (lastActiveStateKey === stateKey) {
+            setActive(stateKey, false);
+            lastActiveStateKey = null;
+            hideTip();
+          }
         });
       });
     }
