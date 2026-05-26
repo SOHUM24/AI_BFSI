@@ -13,6 +13,11 @@
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <!-- Chart.js add-ons for extended chart types (lightweight, on-demand use) -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@2.3.0/dist/chartjs-chart-treemap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot@4.4.4/build/index.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-funnel@4.0.0/dist/chartjs-chart-funnel.min.js"></script>
   <script src="./pacs_data.js"></script>
   <script src="./stcb_data.js"></script>
   <script src="./yearly_data.js"></script>
@@ -58,6 +63,58 @@
         radial-gradient(circle at 88% 6%, rgba(212, 130, 10, 0.10), transparent 40%),
         repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0 2px, transparent 2px 14px),
         linear-gradient(120deg, #fbf9f2, var(--cream));
+    }
+
+    /* ═══════════════════════════════════════════════
+       SINGLE-FILE "3 PAGES" ROUTING (DCCB / STCB / PACS)
+    ═══════════════════════════════════════════════ */
+    /* By default, render everything (never blank). Routing hides sections only after JS runs. */
+    [data-page] {
+      display: block;
+    }
+
+    body[data-routed="1"] [data-page] {
+      display: none;
+    }
+
+    body[data-routed="1"][data-page="dccb"] [data-page="dccb"],
+    body[data-routed="1"][data-page="stcb"] [data-page="stcb"],
+    body[data-routed="1"][data-page="pacs"] [data-page="pacs"],
+    body[data-routed="1"][data-page="dccb"] [data-page="all"],
+    body[data-routed="1"][data-page="stcb"] [data-page="all"],
+    body[data-routed="1"][data-page="pacs"] [data-page="all"] {
+      display: block;
+    }
+
+    .viz-nav .nav-page {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.06);
+      font-weight: 950;
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+    }
+
+    .viz-nav .nav-page.active {
+      background: rgba(0, 168, 107, 0.18);
+      border-color: rgba(0, 168, 107, 0.45);
+      color: #ffffff;
+    }
+
+    .viz-nav .nav-sub {
+      color: rgba(255, 255, 255, 0.72);
+      font-weight: 800;
+      text-decoration: none;
+      padding: 8px 10px;
+      border-radius: 12px;
+    }
+
+    .viz-nav .nav-sub:hover {
+      color: white;
     }
 
     #viz-header {
@@ -1141,7 +1198,7 @@
   </style>
 </head>
 
-<body>
+<body data-page="dccb">
   <header id="viz-header">
     <div class="viz-logo">
       <i class="fas fa-chart-area"></i>
@@ -1149,15 +1206,19 @@
     </div>
     <nav class="viz-nav">
       <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Report</a>
-      <a href="#map-section">Map</a>
-      <a href="#charts">Analytics</a>
-      <a href="#data-table">Data Table</a>
-      <a href="#ai-adoption">AI Curve</a>
+      <a class="nav-page" id="nav-dccb" href="#dccb"><i class="fas fa-building-columns"></i> DCCB</a>
+      <a class="nav-page" id="nav-stcb" href="#stcb"><i class="fas fa-university"></i> STCB</a>
+      <a class="nav-page" id="nav-pacs" href="#pacs"><i class="fas fa-store"></i> PACS</a>
+
+      <a class="nav-sub" id="nav-map" href="#map-section"><i class="fas fa-map"></i> Map</a>
+      <a class="nav-sub" id="nav-analytics" href="#charts"><i class="fas fa-chart-bar"></i> Analytics</a>
+      <a class="nav-sub" id="nav-table" href="#data-table"><i class="fas fa-table"></i> Table</a>
+      <a class="nav-sub" id="nav-ai" href="#ai-adoption"><i class="fas fa-brain"></i> AI Curve</a>
       <a href="index.html" class="btn-viz"><i class="fas fa-book-open"></i> Full Report</a>
     </nav>
   </header>
 
-  <section id="viz-hero">
+  <section id="viz-hero" data-page="dccb">
     <div class="hero-eyebrow"><i class="fas fa-database"></i> NAFSCOB Official Directory · FY 2019–2024</div>
     <h1>District Central Cooperative Banks<br><span class="hl">State-wise</span> Data <span
         class="hl-amber">Visualization</span></h1>
@@ -1191,7 +1252,7 @@
     </div>
   </section>
 
-  <section class="section" id="map-section">
+  <section class="section" id="map-section" data-page="dccb">
     <div class="sec-inner">
       <div class="sec-tag"><i class="fas fa-map-marked-alt"></i> Interactive Explorer</div>
       <h2 class="sec-title">DCCB <span class="accent">Business Heatmap</span> Across India</h2>
@@ -1232,20 +1293,32 @@
 
           <div class="map-legend">
             <div class="leg-item">
-              <div class="leg-box" style="background:#ffeda0;border:1px solid rgba(0,0,0,0.1)"></div><span
-                id="leg-1-txt">Low</span>
+              <div class="leg-box" style="background:#ffffb2;border:1px solid rgba(0,0,0,0.1)"></div><span
+                id="leg-1-txt">L1</span>
+            </div>
+            <div class="leg-item">
+              <div class="leg-box" style="background:#fed976;border:1px solid rgba(0,0,0,0.1)"></div><span
+                id="leg-2-txt">L2</span>
             </div>
             <div class="leg-item">
               <div class="leg-box" style="background:#feb24c;border:1px solid rgba(0,0,0,0.1)"></div><span
-                id="leg-2-txt">Medium</span>
+                id="leg-3-txt">L3</span>
+            </div>
+            <div class="leg-item">
+              <div class="leg-box" style="background:#fd8d3c;border:1px solid rgba(0,0,0,0.1)"></div><span
+                id="leg-4-txt">L4</span>
             </div>
             <div class="leg-item">
               <div class="leg-box" style="background:#f03b20;border:1px solid rgba(0,0,0,0.1)"></div><span
-                id="leg-3-txt">High</span>
+                id="leg-5-txt">L5</span>
             </div>
             <div class="leg-item">
               <div class="leg-box" style="background:#bd0026;border:1px solid rgba(0,0,0,0.1)"></div><span
-                id="leg-4-txt">Very High</span>
+                id="leg-6-txt">L6</span>
+            </div>
+            <div class="leg-item">
+              <div class="leg-box" style="background:#800026;border:1px solid rgba(0,0,0,0.1)"></div><span
+                id="leg-7-txt">L7</span>
             </div>
           </div>
         </div>
@@ -1388,7 +1461,94 @@
     </div>
   </section>
 
-  <section class="section" id="charts">
+  <section class="section" id="viz-studio" data-page="all" style="display: none !important;">
+    <div class="sec-inner">
+      <div class="sec-tag"><i class="fas fa-wand-magic-sparkles"></i> Visualization Studio</div>
+      <h2 class="sec-title">Universal <span class="accent">Chart Builder</span></h2>
+      <div class="divider"></div>
+      <p class="sec-lead">Build any chart from the complete Excel dumps (all sheets/columns). Select dataset, sheet, and
+        fields — then choose a chart type. Designed to cover every applicable visualization without clutter.</p>
+
+      <div class="chart-card wide" style="background:rgba(255,255,255,.92);margin-top:14px">
+        <h4>Chart Builder</h4>
+        <p class="chart-sub">Supports: bar (grouped/stacked), line/area, pie/donut, scatter/bubble, heatmap, radar,
+          histogram, treemap, funnel, waterfall, box plot, and KPI gauges.</p>
+
+        <div class="chart-controls" style="margin-top:14px">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="studio-dataset">Dataset</label>
+            <select id="studio-dataset" aria-label="Studio dataset"></select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="studio-sheet">Sheet</label>
+            <select id="studio-sheet" aria-label="Studio sheet"></select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="studio-chart">Chart</label>
+            <select id="studio-chart" aria-label="Studio chart type">
+              <option value="bar_grouped" selected>Bar · Grouped</option>
+              <option value="bar_stacked">Bar · Stacked</option>
+              <option value="bar_horizontal">Bar · Horizontal</option>
+              <option value="line">Line</option>
+              <option value="area">Area</option>
+              <option value="stacked_area">Stacked Area</option>
+              <option value="pie">Pie</option>
+              <option value="donut">Donut</option>
+              <option value="scatter">Scatter</option>
+              <option value="bubble">Bubble</option>
+              <option value="heatmap">Heatmap</option>
+              <option value="radar">Radar</option>
+              <option value="histogram">Histogram</option>
+              <option value="treemap">Treemap</option>
+              <option value="funnel">Funnel</option>
+              <option value="waterfall">Waterfall</option>
+              <option value="boxplot">Box Plot</option>
+              <option value="gauge">Gauge / KPI</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="chart-controls" style="margin-top:10px">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="studio-cat">Category (X)</label>
+            <select id="studio-cat" aria-label="Studio category"></select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="studio-val">Value (Y)</label>
+            <select id="studio-val" aria-label="Studio value"></select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="studio-val2">Value 2 (optional)</label>
+            <select id="studio-val2" aria-label="Studio value 2"></select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="studio-size">Size (bubble/gauge)</label>
+            <select id="studio-size" aria-label="Studio size"></select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="studio-top">Top N</label>
+            <select id="studio-top" aria-label="Studio top">
+              <option value="10" selected>Top 10</option>
+              <option value="15">Top 15</option>
+              <option value="20">Top 20</option>
+              <option value="999">All</option>
+            </select>
+          </div>
+          <button id="studio-render" class="btn-viz" type="button"
+            style="height:40px;align-self:center;border:none;cursor:pointer"><i class="fas fa-play"></i> Render</button>
+        </div>
+
+        <div id="studio-kpis"
+          style="display:none;margin-top:10px;gap:10px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));"></div>
+        <div class="chart-wrap tall" style="height:520px;margin-top:12px">
+          <canvas id="studio-chart-canvas"></canvas>
+        </div>
+        <div class="chart-source" id="studio-note">—</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="charts" data-page="dccb">
     <div class="sec-inner">
       <div class="sec-tag"><i class="fas fa-chart-bar"></i> Comparative Analytics</div>
       <h2 class="sec-title">DCCB Metrics <span class="accent">Across States</span></h2>
@@ -1542,7 +1702,8 @@
     </div>
   </section>
 
-  <section class="section" style="background:var(--forest);padding:0;position:relative;overflow:hidden" id="kcc">
+  <section class="section" style="background:var(--forest);padding:0;position:relative;overflow:hidden" id="kcc"
+    data-page="dccb">
     <div
       style="position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(0,168,107,.12) 0%,transparent 50%),radial-gradient(ellipse at 70% 50%,rgba(212,130,10,.10) 0%,transparent 50%)">
     </div>
@@ -1588,7 +1749,7 @@
     </div>
   </section>
 
-  <section class="section img-section" id="ai-adoption">
+  <section class="section img-section" id="ai-adoption" data-page="all">
     <div class="sec-inner">
       <div class="sec-tag"><i class="fas fa-brain"></i> AI Maturity Context</div>
       <h2 class="sec-title">AI Adoption <span class="accent-amber">Maturity Curve</span></h2>
@@ -1606,7 +1767,7 @@
     </div>
   </section>
 
-  <section class="section table-section" id="data-table">
+  <section class="section table-section" id="data-table" data-page="dccb">
     <div class="sec-inner">
       <div class="sec-tag"><i class="fas fa-table"></i> Raw Data</div>
       <h2 class="sec-title">Complete <span class="accent">State-wise</span> DCCB Data</h2>
@@ -1637,7 +1798,7 @@
     </div>
   </section>
 
-  <section class="section placeholder-section" id="stcb">
+  <section class="section placeholder-section" id="stcb" data-page="stcb">
     <div class="sec-inner">
       <div class="sec-tag" style="color:var(--amber-bright)"><i class="fas fa-university"></i> STCB YoY Analytics</div>
       <h2 class="sec-title">State Cooperative <span style="color:var(--amber-bright)">Bank (STCB)</span> YoY Explorer
@@ -1745,10 +1906,47 @@
           <div class="chart-wrap tall" style="height:420px"><canvas id="stcb-snap-chart"></canvas></div>
         </div>
       </div>
+
+      <div class="chart-card wide" style="background:rgba(255,255,255,.92);margin-top:24px">
+        <h4>All-Metrics Explorer (STCB) — Any Metric, Any Year</h4>
+        <p class="chart-sub">Lightweight view across all states for any available STCB datapoint (from `stcb_data.js`).
+        </p>
+
+        <div class="chart-controls" style="margin-top:14px">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="stcb-ex-year">Year</label>
+            <select id="stcb-ex-year" aria-label="STCB explorer year"></select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="stcb-ex-metric">Metric</label>
+            <select id="stcb-ex-metric" aria-label="STCB explorer metric"></select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="stcb-ex-top">Top</label>
+            <select id="stcb-ex-top" aria-label="STCB explorer top">
+              <option value="10" selected>Top 10</option>
+              <option value="15">Top 15</option>
+              <option value="20">Top 20</option>
+              <option value="999">All</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="stcb-ex-type">Chart</label>
+            <select id="stcb-ex-type" aria-label="STCB explorer chart">
+              <option value="bar" selected>Bar</option>
+              <option value="horizontal">Horizontal</option>
+              <option value="line">Line</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="chart-wrap tall" style="height:440px"><canvas id="stcb-explorer-chart"></canvas></div>
+        <div class="chart-source" id="stcb-explorer-note">—</div>
+      </div>
     </div>
   </section>
 
-  <section class="section table-section" id="stcb-data-table">
+  <section class="section table-section" id="stcb-data-table" data-page="stcb">
     <div class="sec-inner">
       <div class="sec-tag" style="color:var(--amber-bright)"><i class="fas fa-table"></i> Raw Data</div>
       <h2 class="sec-title">Complete <span style="color:var(--amber-bright)">STCB</span> Data</h2>
@@ -1763,7 +1961,7 @@
     </div>
   </section>
 
-  <section class="section placeholder-section" id="pacs">
+  <section class="section placeholder-section" id="pacs" data-page="pacs">
     <div class="sec-inner">
       <div class="sec-tag" style="color:var(--emerald-bright)"><i class="fas fa-store"></i> PACS Integration (Live)
       </div>
@@ -1903,10 +2101,47 @@
           </div>
         </div>
       </div>
+
+      <div class="chart-card wide" style="background:rgba(255,255,255,.92);margin-top:24px">
+        <h4>All-Metrics Explorer (PACS) — Any Metric, Any Year</h4>
+        <p class="chart-sub">Lightweight view across all states for any available PACS datapoint (from `pacs_data.js`).
+        </p>
+
+        <div class="chart-controls" style="margin-top:14px">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="pacs-ex-year">Year</label>
+            <select id="pacs-ex-year" aria-label="PACS explorer year"></select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="pacs-ex-metric">Metric</label>
+            <select id="pacs-ex-metric" aria-label="PACS explorer metric"></select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="pacs-ex-top">Top</label>
+            <select id="pacs-ex-top" aria-label="PACS explorer top">
+              <option value="10" selected>Top 10</option>
+              <option value="15">Top 15</option>
+              <option value="20">Top 20</option>
+              <option value="999">All</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label for="pacs-ex-type">Chart</label>
+            <select id="pacs-ex-type" aria-label="PACS explorer chart">
+              <option value="bar" selected>Bar</option>
+              <option value="horizontal">Horizontal</option>
+              <option value="line">Line</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="chart-wrap tall" style="height:440px"><canvas id="pacs-explorer-chart"></canvas></div>
+        <div class="chart-source" id="pacs-explorer-note">—</div>
+      </div>
     </div>
   </section>
 
-  <section class="section table-section" id="pacs-data-table">
+  <section class="section table-section" id="pacs-data-table" data-page="pacs">
     <div class="sec-inner">
       <div class="sec-tag" style="color:var(--emerald-bright)"><i class="fas fa-table"></i> Raw Data</div>
       <h2 class="sec-title">Complete <span style="color:var(--emerald-bright)">PACS</span> Data</h2>
@@ -2052,13 +2287,20 @@
       return !!DCCB_DATA?.ALL_INDIA;
     }
 
+    const HEATMAP_PALETTE_7 = ['#ffffb2', '#fed976', '#feb24c', '#fd8d3c', '#f03b20', '#bd0026', '#800026'];
+
     function updateLegend() {
-      if (!mapScale) return;
+      if (!mapScale?.cuts?.length) return;
       const fmt0 = n => Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-      document.getElementById('leg-1-txt').textContent = `Low (≤ ₹${fmt0(mapScale.q1)} Cr)`;
-      document.getElementById('leg-2-txt').textContent = `Medium (₹${fmt0(mapScale.q1)}–₹${fmt0(mapScale.q2)} Cr)`;
-      document.getElementById('leg-3-txt').textContent = `High (₹${fmt0(mapScale.q2)}–₹${fmt0(mapScale.q3)} Cr)`;
-      document.getElementById('leg-4-txt').textContent = `Very High (> ₹${fmt0(mapScale.q3)} Cr)`;
+      const c = mapScale.cuts;
+      // 7-class quantile legend for clearer distinction.
+      document.getElementById('leg-1-txt').textContent = `L1 (≤ ₹${fmt0(c[0])} Cr)`;
+      document.getElementById('leg-2-txt').textContent = `L2 (₹${fmt0(c[0])}–₹${fmt0(c[1])} Cr)`;
+      document.getElementById('leg-3-txt').textContent = `L3 (₹${fmt0(c[1])}–₹${fmt0(c[2])} Cr)`;
+      document.getElementById('leg-4-txt').textContent = `L4 (₹${fmt0(c[2])}–₹${fmt0(c[3])} Cr)`;
+      document.getElementById('leg-5-txt').textContent = `L5 (₹${fmt0(c[3])}–₹${fmt0(c[4])} Cr)`;
+      document.getElementById('leg-6-txt').textContent = `L6 (₹${fmt0(c[4])}–₹${fmt0(c[5])} Cr)`;
+      document.getElementById('leg-7-txt').textContent = `L7 (> ₹${fmt0(c[5])} Cr)`;
     }
 
     function buildMapScale() {
@@ -2067,22 +2309,27 @@
         .filter(v => isNum(v))
         .sort((a, b) => a - b);
       if (!valuesCr.length) {
-        mapScale = { q1: 0, q2: 0, q3: 0 };
+        mapScale = { cuts: [0, 0, 0, 0, 0, 0] };
         updateLegend();
         return;
       }
       const q = p => valuesCr[Math.floor((valuesCr.length - 1) * p)];
-      mapScale = { q1: q(0.25), q2: q(0.50), q3: q(0.75) };
+      // 6 cut-points → 7 buckets
+      mapScale = { cuts: [q(1 / 7), q(2 / 7), q(3 / 7), q(4 / 7), q(5 / 7), q(6 / 7)] };
       updateLegend();
     }
 
     function getMapColor(businessLakhs) {
       const vCr = cr(businessLakhs);
-      if (!isNum(vCr) || !mapScale) return '#e5e7eb';
-      if (vCr <= mapScale.q1) return '#ffeda0';
-      if (vCr <= mapScale.q2) return '#feb24c';
-      if (vCr <= mapScale.q3) return '#f03b20';
-      return '#bd0026';
+      if (!isNum(vCr) || !mapScale?.cuts?.length) return '#e5e7eb';
+      const [c1, c2, c3, c4, c5, c6] = mapScale.cuts;
+      if (vCr <= c1) return HEATMAP_PALETTE_7[0];
+      if (vCr <= c2) return HEATMAP_PALETTE_7[1];
+      if (vCr <= c3) return HEATMAP_PALETTE_7[2];
+      if (vCr <= c4) return HEATMAP_PALETTE_7[3];
+      if (vCr <= c5) return HEATMAP_PALETTE_7[4];
+      if (vCr <= c6) return HEATMAP_PALETTE_7[5];
+      return HEATMAP_PALETTE_7[6];
     }
 
     function applyMapColoring() {
@@ -2564,23 +2811,23 @@
       const thead = document.getElementById('stcb-raw-table-head');
       const tbody = document.getElementById('stcb-raw-table-body');
       if (!thead || !tbody || !window.STCB_DATA?.states) return;
-      
+
       const stcbStates = Object.keys(window.STCB_DATA.states);
       const latestYear = window.STCB_DATA.years[window.STCB_DATA.years.length - 1];
       const allMetrics = window.STCB_DATA.metrics || [];
-      
+
       // Filter out empty columns
       const validMetrics = allMetrics.filter(m => {
         return stcbStates.some(s => window.STCB_DATA.states[s]?.[latestYear]?.[m] != null && String(window.STCB_DATA.states[s]?.[latestYear]?.[m]).trim() !== '');
       });
-      
+
       let headHtml = '<tr><th>State</th>';
       for (const m of validMetrics) {
         headHtml += `<th>${m.replace(/_/g, ' ')}</th>`;
       }
       headHtml += '</tr>';
       thead.innerHTML = headHtml;
-      
+
       let bodyHtml = '';
       for (const s of stcbStates) {
         const obj = window.STCB_DATA.states[s]?.[latestYear];
@@ -2599,23 +2846,23 @@
       const thead = document.getElementById('pacs-raw-table-head');
       const tbody = document.getElementById('pacs-raw-table-body');
       if (!thead || !tbody || !window.PACS_DATA?.states) return;
-      
+
       const pacsStates = Object.keys(window.PACS_DATA.states);
       const latestYear = window.PACS_DATA.years[window.PACS_DATA.years.length - 1];
       const allMetrics = window.PACS_DATA.metrics || [];
-      
+
       // Filter out empty columns
       const validMetrics = allMetrics.filter(m => {
         return pacsStates.some(s => window.PACS_DATA.states[s]?.[latestYear]?.[m] != null && String(window.PACS_DATA.states[s]?.[latestYear]?.[m]).trim() !== '');
       });
-      
+
       let headHtml = '<tr><th>State</th>';
       for (const m of validMetrics) {
         headHtml += `<th>${m}</th>`;
       }
       headHtml += '</tr>';
       thead.innerHTML = headHtml;
-      
+
       let bodyHtml = '';
       for (const s of pacsStates) {
         const obj = window.PACS_DATA.states[s]?.[latestYear];
@@ -3493,6 +3740,43 @@
       if (e.target.id === 'state-modal') document.getElementById('state-modal').classList.remove('open');
     });
 
+    /* ══════════════════════════════════════════════
+       LIGHTWEIGHT "PAGE" ROUTER (SINGLE FILE)
+       Hash: #dccb | #stcb | #pacs
+    ══════════════════════════════════════════════ */
+    function resolvePageFromHash() {
+      const h = String(location.hash || '').toLowerCase();
+      if (h.startsWith('#stcb')) return 'stcb';
+      if (h.startsWith('#pacs')) return 'pacs';
+      return 'dccb';
+    }
+
+    function applyPageRouting({ scrollTop = false } = {}) {
+      const page = resolvePageFromHash();
+      document.body.dataset.routed = '1';
+      document.body.dataset.page = page;
+
+      const setActive = (id, on) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('active', !!on);
+      };
+      setActive('nav-dccb', page === 'dccb');
+      setActive('nav-stcb', page === 'stcb');
+      setActive('nav-pacs', page === 'pacs');
+
+      // Sub-nav visibility: Map/Analytics/Table only make sense for DCCB page.
+      const subIds = ['nav-map', 'nav-analytics', 'nav-table'];
+      for (const sid of subIds) {
+        const el = document.getElementById(sid);
+        if (el) el.style.display = page === 'dccb' ? '' : 'none';
+      }
+
+      // `instant` is not a valid scroll behavior in most browsers.
+      if (scrollTop) window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+
+    window.addEventListener('hashchange', () => applyPageRouting({ scrollTop: true }));
+
     function renderPacsSection() {
       const pacs = window.PACS_DATA;
       if (!pacs?.states) return;
@@ -3597,6 +3881,624 @@
       pacsYearSel.addEventListener('change', render);
       pacsMetricSel.addEventListener('change', render);
       render();
+    }
+
+    /* ── ALL-METRICS EXPLORERS (STCB + PACS) ── */
+    function isFiniteNum(v) {
+      const n = Number(v);
+      return Number.isFinite(n);
+    }
+
+    function initStcbExplorer() {
+      const yearSel = document.getElementById('stcb-ex-year');
+      const metricSel = document.getElementById('stcb-ex-metric');
+      const topSel = document.getElementById('stcb-ex-top');
+      const typeSel = document.getElementById('stcb-ex-type');
+      const canvas = document.getElementById('stcb-explorer-chart');
+      const note = document.getElementById('stcb-explorer-note');
+      if (!yearSel || !metricSel || !topSel || !typeSel || !canvas || !window.STCB_DATA?.states) return;
+
+      const years = Array.isArray(window.STCB_DATA.years) ? window.STCB_DATA.years : [];
+      const latestYear = years[years.length - 1] || years[0] || '';
+      yearSel.innerHTML = years.map(y => `<option value="${y}" ${y === latestYear ? 'selected' : ''}>${y}</option>`).join('');
+
+      // Keep only metrics that have at least one numeric value in the selected year.
+      const allMetrics = Array.isArray(window.STCB_DATA.metrics) ? window.STCB_DATA.metrics : [];
+      const states = Object.keys(window.STCB_DATA.states);
+
+      function validMetricsForYear(y) {
+        return allMetrics.filter(m => states.some(s => isFiniteNum(window.STCB_DATA.states?.[s]?.[y]?.[m])));
+      }
+
+      function fillMetricOptions() {
+        const y = yearSel.value;
+        const mets = validMetricsForYear(y);
+        metricSel.innerHTML = mets.map((m, i) => `<option value="${m}" ${i === 0 ? 'selected' : ''}>${m.replace(/_/g, ' ')}</option>`).join('');
+      }
+
+      let chart = null;
+      function render() {
+        const y = yearSel.value;
+        const m = metricSel.value;
+        if (!y || !m) return;
+
+        const pairs = states.map(s => ({ s, v: window.STCB_DATA.states?.[s]?.[y]?.[m] }))
+          .filter(p => isFiniteNum(p.v))
+          .map(p => ({ s: p.s, v: Number(p.v) }))
+          .sort((a, b) => b.v - a.v);
+
+        const topN = Number(topSel.value || 10);
+        const sliced = topN >= 999 ? pairs : pairs.slice(0, topN);
+
+        const labels = sliced.map(p => p.s);
+        const values = sliced.map(p => p.v);
+
+        const t = typeSel.value;
+        const type = t === 'horizontal' ? 'bar' : (t === 'line' ? 'line' : 'bar');
+        const indexAxis = t === 'horizontal' ? 'y' : 'x';
+
+        if (chart) chart.destroy();
+        chart = new Chart(canvas, {
+          type,
+          data: {
+            labels,
+            datasets: [{
+              label: `${m.replace(/_/g, ' ')} (${y})`,
+              data: values,
+              backgroundColor: 'rgba(212,130,10,0.75)',
+              borderColor: 'rgba(212,130,10,1)',
+              borderWidth: 1.5,
+              borderRadius: 10,
+              pointRadius: type === 'line' ? 3 : 0,
+              tension: 0.35,
+              fill: type === 'line'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis,
+            plugins: {
+              legend: { display: true, labels: { usePointStyle: true } },
+              tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${fmt(ctx.raw)}` } }
+            },
+            scales: {
+              x: { grid: { color: 'rgba(0,0,0,0.06)' } },
+              y: { grid: { color: 'rgba(0,0,0,0.06)' }, beginAtZero: true }
+            }
+          }
+        });
+
+        if (note) note.textContent = `Showing ${sliced.length}/${pairs.length} states with numeric values for ${m} (${y}).`;
+      }
+
+      fillMetricOptions();
+      render();
+      yearSel.addEventListener('change', () => { fillMetricOptions(); render(); });
+      metricSel.addEventListener('change', render);
+      topSel.addEventListener('change', render);
+      typeSel.addEventListener('change', render);
+    }
+
+    function initPacsExplorer() {
+      const yearSel = document.getElementById('pacs-ex-year');
+      const metricSel = document.getElementById('pacs-ex-metric');
+      const topSel = document.getElementById('pacs-ex-top');
+      const typeSel = document.getElementById('pacs-ex-type');
+      const canvas = document.getElementById('pacs-explorer-chart');
+      const note = document.getElementById('pacs-explorer-note');
+      if (!yearSel || !metricSel || !topSel || !typeSel || !canvas || !window.PACS_DATA?.states) return;
+
+      const years = Array.isArray(window.PACS_DATA.years) ? window.PACS_DATA.years : [];
+      const latestYear = years[years.length - 1] || years[0] || '';
+      yearSel.innerHTML = years.map(y => `<option value="${y}" ${y === latestYear ? 'selected' : ''}>${y}</option>`).join('');
+
+      const allMetrics = Array.isArray(window.PACS_DATA.metrics) ? window.PACS_DATA.metrics : [];
+      const states = Object.keys(window.PACS_DATA.states);
+
+      function validMetricsForYear(y) {
+        return allMetrics.filter(m => states.some(s => isFiniteNum(window.PACS_DATA.states?.[s]?.[y]?.[m])));
+      }
+
+      function fillMetricOptions() {
+        const y = yearSel.value;
+        const mets = validMetricsForYear(y);
+        metricSel.innerHTML = mets.map((m, i) => `<option value="${m}" ${i === 0 ? 'selected' : ''}>${m}</option>`).join('');
+      }
+
+      let chart = null;
+      function render() {
+        const y = yearSel.value;
+        const m = metricSel.value;
+        if (!y || !m) return;
+
+        const pairs = states.map(s => ({ s, v: window.PACS_DATA.states?.[s]?.[y]?.[m] }))
+          .filter(p => isFiniteNum(p.v))
+          .map(p => ({ s: p.s, v: Number(p.v) }))
+          .sort((a, b) => b.v - a.v);
+
+        const topN = Number(topSel.value || 10);
+        const sliced = topN >= 999 ? pairs : pairs.slice(0, topN);
+
+        const labels = sliced.map(p => p.s);
+        const values = sliced.map(p => p.v);
+
+        const t = typeSel.value;
+        const type = t === 'horizontal' ? 'bar' : (t === 'line' ? 'line' : 'bar');
+        const indexAxis = t === 'horizontal' ? 'y' : 'x';
+
+        if (chart) chart.destroy();
+        chart = new Chart(canvas, {
+          type,
+          data: {
+            labels,
+            datasets: [{
+              label: `${m} (${y})`,
+              data: values,
+              backgroundColor: 'rgba(0,168,107,0.72)',
+              borderColor: 'rgba(0,168,107,1)',
+              borderWidth: 1.5,
+              borderRadius: 10,
+              pointRadius: type === 'line' ? 3 : 0,
+              tension: 0.35,
+              fill: type === 'line'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis,
+            plugins: {
+              legend: { display: true, labels: { usePointStyle: true } },
+              tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${fmt(ctx.raw)}` } }
+            },
+            scales: {
+              x: { grid: { color: 'rgba(0,0,0,0.06)' } },
+              y: { grid: { color: 'rgba(0,0,0,0.06)' }, beginAtZero: true }
+            }
+          }
+        });
+
+        if (note) note.textContent = `Showing ${sliced.length}/${pairs.length} states with numeric values for ${m} (${y}).`;
+      }
+
+      fillMetricOptions();
+      render();
+      yearSel.addEventListener('change', () => { fillMetricOptions(); render(); });
+      metricSel.addEventListener('change', render);
+      topSel.addEventListener('change', render);
+      typeSel.addEventListener('change', render);
+    }
+
+    /* ── VISUALIZATION STUDIO (ALL CHART TYPES ON DEMAND) ── */
+    function getExcelDumpForDataset(key) {
+      if (key === 'DCCB_MASTER') return DCCB_DATA?.__excel_dump?.['DCCB_MASTER_2019_2024.xlsx'] || null;
+      if (key === 'DCCB_TABLES') return DCCB_DATA?.__excel_dump?.['DCCB_Master_Data.xlsx'] || null;
+      if (key === 'STCB') return window.STCB_EXCEL_DUMP || null;
+      if (key === 'PACS') return window.PACS_EXCEL_DUMP || null;
+      return null;
+    }
+
+    function studioListColumns(sheetObj) {
+      const cols = Array.isArray(sheetObj?.columns) ? sheetObj.columns : [];
+      return cols.map(c => String(c));
+    }
+
+    function studioRecords(sheetObj) {
+      return Array.isArray(sheetObj?.records) ? sheetObj.records : [];
+    }
+
+    function studioIsNum(v) {
+      const n = Number(v);
+      return Number.isFinite(n);
+    }
+
+    function initVisualizationStudio() {
+      const dsSel = document.getElementById('studio-dataset');
+      const shSel = document.getElementById('studio-sheet');
+      const chartSel = document.getElementById('studio-chart');
+      const catSel = document.getElementById('studio-cat');
+      const valSel = document.getElementById('studio-val');
+      const val2Sel = document.getElementById('studio-val2');
+      const sizeSel = document.getElementById('studio-size');
+      const topSel = document.getElementById('studio-top');
+      const btn = document.getElementById('studio-render');
+      const canvas = document.getElementById('studio-chart-canvas');
+      const note = document.getElementById('studio-note');
+      const kpis = document.getElementById('studio-kpis');
+      if (!dsSel || !shSel || !chartSel || !catSel || !valSel || !val2Sel || !sizeSel || !topSel || !btn || !canvas) return;
+
+      const datasets = [
+        { id: 'DCCB_MASTER', label: 'DCCB · MASTER (2019–2024)' },
+        { id: 'DCCB_TABLES', label: 'DCCB · TABLES (All Tables)' },
+        { id: 'STCB', label: 'STCB · Excel Dump' },
+        { id: 'PACS', label: 'PACS · Excel Dump' }
+      ];
+      dsSel.innerHTML = datasets.map((d, i) => `<option value="${d.id}" ${i === 0 ? 'selected' : ''}>${d.label}</option>`).join('');
+
+      let studioChart = null;
+
+      function fillSheets() {
+        const dump = getExcelDumpForDataset(dsSel.value);
+        const sheets = Object.keys(dump?.sheets || {});
+        shSel.innerHTML = sheets.map((s, i) => `<option value="${s}" ${i === 0 ? 'selected' : ''}>${s}</option>`).join('');
+      }
+
+      function fillFields() {
+        const dump = getExcelDumpForDataset(dsSel.value);
+        const sheet = dump?.sheets?.[shSel.value];
+        const cols = studioListColumns(sheet);
+        const recs = studioRecords(sheet);
+
+        // simple inference: columns that appear numeric in many rows
+        const numericCols = cols.filter(c => {
+          let seen = 0, num = 0;
+          for (let i = 0; i < recs.length && seen < 80; i++) {
+            const v = recs[i]?.[c];
+            if (v == null || v === '') continue;
+            seen++;
+            if (studioIsNum(v)) num++;
+          }
+          return seen >= 5 && (num / Math.max(1, seen)) >= 0.65;
+        });
+
+        const catDefault = cols.find(c => /state|ut|indicator|year|name/i.test(c)) || cols[0] || '';
+        const valDefault = numericCols[0] || cols[1] || '';
+        const val2Default = numericCols[1] || '';
+        const sizeDefault = numericCols[2] || valDefault;
+
+        const opt = (arr, selected) => arr.map((c) => `<option value="${c}" ${c === selected ? 'selected' : ''}>${c}</option>`).join('');
+        catSel.innerHTML = opt(cols, catDefault);
+        valSel.innerHTML = opt(numericCols.length ? numericCols : cols, valDefault);
+        val2Sel.innerHTML = `<option value="" selected>—</option>` + opt(numericCols.length ? numericCols : cols, val2Default);
+        sizeSel.innerHTML = `<option value="" selected>—</option>` + opt(numericCols.length ? numericCols : cols, sizeDefault);
+      }
+
+      function aggTopN(records, catKey, valKey, topN) {
+        const m = new Map();
+        for (const r of records) {
+          const c = String(r?.[catKey] ?? '').trim();
+          const v = r?.[valKey];
+          if (!c || !studioIsNum(v)) continue;
+          m.set(c, (m.get(c) || 0) + Number(v));
+        }
+        const arr = Array.from(m.entries()).map(([k, v]) => ({ k, v })).sort((a, b) => b.v - a.v);
+        const sliced = topN >= 999 ? arr : arr.slice(0, topN);
+        return { sliced, total: arr.length };
+      }
+
+      function render() {
+        const dump = getExcelDumpForDataset(dsSel.value);
+        const sheet = dump?.sheets?.[shSel.value];
+        const recs = studioRecords(sheet);
+        const catKey = catSel.value;
+        const valKey = valSel.value;
+        const val2Key = val2Sel.value;
+        const sizeKey = sizeSel.value;
+        const topN = Number(topSel.value || 10);
+        const chartType = chartSel.value;
+
+        if (studioChart) { studioChart.destroy(); studioChart = null; }
+        if (kpis) { kpis.style.display = 'none'; kpis.innerHTML = ''; }
+
+        // KPI / Gauge
+        if (chartType === 'gauge') {
+          const { sliced } = aggTopN(recs, catKey, valKey, topN);
+          if (kpis) {
+            kpis.style.display = 'grid';
+            kpis.innerHTML = sliced.map(p => `
+              <div style="background:white;border:1px solid rgba(0,0,0,0.06);border-radius:14px;padding:12px 14px">
+                <div style="font-size:11px;color:var(--text-muted);font-weight:950;text-transform:uppercase;letter-spacing:.06em">${p.k}</div>
+                <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:950;color:var(--forest-mid);margin-top:6px">${fmt(p.v)}</div>
+                <div style="height:10px;background:rgba(0,0,0,0.06);border-radius:999px;margin-top:10px;overflow:hidden">
+                  <div style="height:100%;width:${Math.min(100, (p.v / (sliced[0]?.v || p.v)) * 100)}%;background:linear-gradient(90deg,var(--emerald),var(--amber));"></div>
+                </div>
+              </div>
+            `).join('');
+          }
+          if (note) note.textContent = `Gauge/KPI cards from aggregated ${valKey} by ${catKey}.`;
+          return;
+        }
+
+        // Histogram (bins on numeric column)
+        if (chartType === 'histogram') {
+          const vals = recs.map(r => r?.[valKey]).filter(v => studioIsNum(v)).map(Number);
+          if (!vals.length) { if (note) note.textContent = 'No numeric values for histogram.'; return; }
+          vals.sort((a, b) => a - b);
+          const min = vals[0], max = vals[vals.length - 1];
+          const bins = 12;
+          const step = (max - min) / bins || 1;
+          const counts = new Array(bins).fill(0);
+          for (const v of vals) {
+            const idx = Math.min(bins - 1, Math.max(0, Math.floor((v - min) / step)));
+            counts[idx] += 1;
+          }
+          const labels = counts.map((_, i) => {
+            const a = min + step * i;
+            const b = min + step * (i + 1);
+            return `${a.toFixed(1)}–${b.toFixed(1)}`;
+          });
+          studioChart = new Chart(canvas, {
+            type: 'bar',
+            data: { labels, datasets: [{ label: `Histogram of ${valKey}`, data: counts, backgroundColor: 'rgba(0,168,107,0.65)', borderRadius: 10 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
+          });
+          if (note) note.textContent = `Histogram for ${valKey} (bins=${bins}).`;
+          return;
+        }
+
+        // Scatter / Bubble
+        if (chartType === 'scatter' || chartType === 'bubble') {
+          const xKey = valKey;
+          const yKey = val2Key || valKey;
+          const pts = [];
+          for (const r of recs) {
+            const x = r?.[xKey], y = r?.[yKey];
+            if (!studioIsNum(x) || !studioIsNum(y)) continue;
+            const o = { x: Number(x), y: Number(y) };
+            if (chartType === 'bubble') {
+              const s = r?.[sizeKey];
+              o.r = studioIsNum(s) ? Math.max(2, Math.min(18, Math.sqrt(Number(s)) / 2)) : 6;
+            }
+            pts.push(o);
+            if (pts.length >= 1500) break;
+          }
+          studioChart = new Chart(canvas, {
+            type: chartType === 'bubble' ? 'bubble' : 'scatter',
+            data: { datasets: [{ label: `${chartType.toUpperCase()}: ${xKey} vs ${yKey}`, data: pts, backgroundColor: 'rgba(0,184,212,0.35)', borderColor: 'rgba(0,184,212,0.85)' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
+          });
+          if (note) note.textContent = `Scatter/Bubble uses numeric columns (X=${xKey}, Y=${yKey}) from raw rows (capped at 1500 points).`;
+          return;
+        }
+
+        // Heatmap (matrix)
+        if (chartType === 'heatmap') {
+          const yKey = val2Key || catKey;
+          const m = new Map();
+          for (const r of recs) {
+            const x = String(r?.[catKey] ?? '').trim();
+            const y = String(r?.[yKey] ?? '').trim();
+            const v = r?.[valKey];
+            if (!x || !y || !studioIsNum(v)) continue;
+            const k = `${x}||${y}`;
+            m.set(k, (m.get(k) || 0) + Number(v));
+          }
+          const xs = Array.from(new Set(Array.from(m.keys()).map(k => k.split('||')[0]))).slice(0, 30);
+          const ys = Array.from(new Set(Array.from(m.keys()).map(k => k.split('||')[1]))).slice(0, 30);
+          const data = [];
+          let vmax = 1;
+          for (const x of xs) for (const y of ys) {
+            const v = m.get(`${x}||${y}`) || 0;
+            vmax = Math.max(vmax, v);
+            data.push({ x, y, v });
+          }
+          studioChart = new Chart(canvas, {
+            type: 'matrix',
+            data: {
+              datasets: [{
+                label: `Heatmap: ${valKey} by ${catKey} × ${yKey}`,
+                data,
+                backgroundColor: (ctx) => {
+                  const v = ctx?.raw?.v ?? 0;
+                  const a = Math.max(0.08, Math.min(0.95, v / vmax));
+                  return `rgba(0,168,107,${a})`;
+                },
+                borderColor: 'rgba(0,0,0,0.06)',
+                borderWidth: 1,
+                width: ({ chart }) => (chart.chartArea || {}).width / Math.max(1, xs.length) - 2,
+                height: ({ chart }) => (chart.chartArea || {}).height / Math.max(1, ys.length) - 2
+              }]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              scales: {
+                x: { type: 'category', labels: xs, grid: { display: false } },
+                y: { type: 'category', labels: ys, grid: { display: false } }
+              },
+              plugins: { legend: { display: true } }
+            }
+          });
+          if (note) note.textContent = `Heatmap built from aggregated ${valKey}. (Capped to 30×30 categories for performance.)`;
+          return;
+        }
+
+        // Treemap
+        if (chartType === 'treemap') {
+          const { sliced } = aggTopN(recs, catKey, valKey, topN);
+          const treeData = sliced.map(p => ({ group: p.k, value: p.v }));
+          studioChart = new Chart(canvas, {
+            type: 'treemap',
+            data: {
+              datasets: [{
+                label: `Treemap: ${valKey} by ${catKey}`,
+                tree: treeData,
+                key: 'value',
+                groups: ['group'],
+                spacing: 0.5,
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.9)',
+                backgroundColor: (ctx) => {
+                  const v = ctx?.raw?._data?.value ?? 0;
+                  const max = sliced[0]?.v || 1;
+                  const a = Math.max(0.2, Math.min(0.95, v / max));
+                  return `rgba(212,130,10,${a})`;
+                }
+              }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
+          });
+          if (note) note.textContent = `Treemap from aggregated ${valKey} by ${catKey}.`;
+          return;
+        }
+
+        // Funnel
+        if (chartType === 'funnel') {
+          const { sliced } = aggTopN(recs, catKey, valKey, topN);
+          studioChart = new Chart(canvas, {
+            type: 'funnel',
+            data: {
+              labels: sliced.map(p => p.k),
+              datasets: [{
+                label: `Funnel: ${valKey} by ${catKey}`,
+                data: sliced.map(p => p.v),
+                backgroundColor: sliced.map((_, i) => `rgba(0,168,107,${0.85 - i * 0.04})`)
+              }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+          });
+          if (note) note.textContent = `Funnel from aggregated ${valKey} by ${catKey}.`;
+          return;
+        }
+
+        // Box plot (distribution by category)
+        if (chartType === 'boxplot') {
+          const yKey = valKey;
+          const g = new Map();
+          for (const r of recs) {
+            const c = String(r?.[catKey] ?? '').trim();
+            const v = r?.[yKey];
+            if (!c || !studioIsNum(v)) continue;
+            if (!g.has(c)) g.set(c, []);
+            g.get(c).push(Number(v));
+          }
+          const groups = Array.from(g.entries()).map(([k, arr]) => ({ k, arr })).filter(x => x.arr.length >= 5);
+          groups.sort((a, b) => b.arr.length - a.arr.length);
+          const sliced = (topN >= 999 ? groups : groups.slice(0, topN));
+          studioChart = new Chart(canvas, {
+            type: 'boxplot',
+            data: {
+              labels: sliced.map(x => x.k),
+              datasets: [{
+                label: `Box Plot: ${yKey} grouped by ${catKey}`,
+                data: sliced.map(x => x.arr),
+                backgroundColor: 'rgba(0,184,212,0.25)',
+                borderColor: 'rgba(0,184,212,0.95)',
+                borderWidth: 1.5
+              }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
+          });
+          if (note) note.textContent = `Box plot shows distribution of ${yKey} within each ${catKey} group. (Groups require ≥5 values.)`;
+          return;
+        }
+
+        // Waterfall (simple sequential delta by category order)
+        if (chartType === 'waterfall') {
+          const { sliced } = aggTopN(recs, catKey, valKey, topN);
+          const labels = sliced.map(p => p.k);
+          const deltas = sliced.map(p => p.v);
+          const base = [];
+          let cum = 0;
+          for (const d of deltas) { base.push(cum); cum += d; }
+          studioChart = new Chart(canvas, {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [
+                { label: 'Base', data: base, backgroundColor: 'rgba(0,0,0,0)', stack: 'wf' },
+                { label: 'Delta', data: deltas, backgroundColor: 'rgba(245,166,35,0.75)', borderRadius: 10, stack: 'wf' }
+              ]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { position: 'top' } },
+              scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
+            }
+          });
+          if (note) note.textContent = `Waterfall is rendered as stacked bars (Base + Delta) using aggregated ${valKey} by ${catKey}.`;
+          return;
+        }
+
+        // Radar (use top categories as axes, values as dataset)
+        if (chartType === 'radar') {
+          const { sliced } = aggTopN(recs, catKey, valKey, topN);
+          studioChart = new Chart(canvas, {
+            type: 'radar',
+            data: {
+              labels: sliced.map(p => p.k),
+              datasets: [{
+                label: `${valKey} by ${catKey}`,
+                data: sliced.map(p => p.v),
+                borderColor: 'rgba(0,168,107,0.9)',
+                backgroundColor: 'rgba(0,168,107,0.14)',
+                borderWidth: 2
+              }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+          });
+          if (note) note.textContent = `Radar compares aggregated ${valKey} across top ${sliced.length} categories of ${catKey}.`;
+          return;
+        }
+
+        // Default: bar/line/area/stacked variants + pie/donut
+        const { sliced, total } = aggTopN(recs, catKey, valKey, topN);
+        const labels = sliced.map(p => p.k);
+        const values = sliced.map(p => p.v);
+
+        if (chartType === 'pie' || chartType === 'donut') {
+          studioChart = new Chart(canvas, {
+            type: chartType === 'donut' ? 'doughnut' : 'pie',
+            data: { labels, datasets: [{ label: `${valKey} by ${catKey}`, data: values, backgroundColor: labels.map((_, i) => `rgba(0,168,107,${0.85 - i * 0.04})`) }] },
+            options: { responsive: true, maintainAspectRatio: false }
+          });
+          if (note) note.textContent = `Pie/Donut uses aggregated ${valKey} grouped by ${catKey}.`;
+          return;
+        }
+
+        const isStacked = (chartType === 'bar_stacked' || chartType === 'stacked_area');
+        const type = (chartType === 'line' || chartType === 'area' || chartType === 'stacked_area') ? 'line' : 'bar';
+        const indexAxis = chartType === 'bar_horizontal' ? 'y' : 'x';
+        const fill = (chartType === 'area' || chartType === 'stacked_area');
+
+        const ds = [{
+          label: `${valKey} (sum)`,
+          data: values,
+          backgroundColor: 'rgba(0,168,107,0.70)',
+          borderColor: 'rgba(0,168,107,1)',
+          borderWidth: 2,
+          borderRadius: type === 'bar' ? 10 : 0,
+          tension: 0.35,
+          fill
+        }];
+
+        if (val2Key) {
+          const { sliced: s2 } = aggTopN(recs, catKey, val2Key, topN);
+          const map2 = new Map(s2.map(p => [p.k, p.v]));
+          ds.push({
+            label: `${val2Key} (sum)`,
+            data: labels.map(l => map2.get(l) || 0),
+            backgroundColor: 'rgba(212,130,10,0.55)',
+            borderColor: 'rgba(212,130,10,1)',
+            borderWidth: 2,
+            borderRadius: type === 'bar' ? 10 : 0,
+            tension: 0.35,
+            fill
+          });
+        }
+
+        studioChart = new Chart(canvas, {
+          type,
+          data: { labels, datasets: ds },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis,
+            plugins: { legend: { position: 'top', labels: { usePointStyle: true } } },
+            scales: {
+              x: { stacked: isStacked, grid: { color: 'rgba(0,0,0,0.06)' } },
+              y: { stacked: isStacked, beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' } }
+            }
+          }
+        });
+        if (note) note.textContent = `Showing ${sliced.length}/${total} categories (Top N) for ${valKey} by ${catKey}.`;
+      }
+
+      fillSheets();
+      fillFields();
+      btn.addEventListener('click', render);
+      dsSel.addEventListener('change', () => { fillSheets(); fillFields(); });
+      shSel.addEventListener('change', fillFields);
     }
 
     function initDccbYoYExplorer() {
@@ -4930,6 +5832,8 @@
 
     (async function main() {
       try {
+        // Apply routing immediately (before heavy renders) for perceived performance.
+        applyPageRouting();
         const ok = await loadDccbs();
         if (!ok) return;
 
@@ -4988,6 +5892,9 @@
         initPacsLatest();
         initPacsStateYearExplorer();
         renderPacsSection();
+        initStcbExplorer();
+        initPacsExplorer();
+        initVisualizationStudio();
       } catch (e) {
         console.error(e);
         const el = document.createElement('div');
